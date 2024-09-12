@@ -28,7 +28,6 @@ public class App extends Application {
         TextField inputField = new TextField(); // Campo de texto para enviar mensajes
         Button sendButton = new Button("Enviar");
 
-        // Configura la acción del botón de envío
         sendButton.setOnAction(e -> {
             String message = inputField.getText();
             if (!message.isEmpty()) {
