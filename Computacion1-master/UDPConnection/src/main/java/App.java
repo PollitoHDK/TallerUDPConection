@@ -1,4 +1,4 @@
-package main.java.model;
+package main.java;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -8,7 +8,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import util.UDPConnection;
 
-public class PeerD extends Application {
+public class App extends Application {
 
     private UDPConnection connection;
     private TextArea messageArea;
@@ -17,43 +17,36 @@ public class PeerD extends Application {
     public void start(Stage primaryStage) {
         connection = UDPConnection.getInstance();
 
-        // Configura el puerto de escucha (5001 para este peer)
-        connection.setPort(5001);
+        // Configura el puerto de escucha (por ejemplo, 5001 para este peer)
+        connection.setPort(5000);
         connection.start(); // Inicia el hilo de recepción de mensajes
-
-        // Configura el callback para actualizar la interfaz con los mensajes recibidos
-        connection.setUiCallback(this);
-
-        // Componentes de la interfaz gráfica
+        // Componentes de la interfaz
         messageArea = new TextArea();
-        messageArea.setEditable(false); // Área para mostrar mensajes recibidos
+        messageArea.setEditable(false); // Área de mensajes recibidos
         messageArea.setPrefHeight(200);
 
         TextField inputField = new TextField(); // Campo de texto para enviar mensajes
         Button sendButton = new Button("Enviar");
 
-        // Acción del botón de enviar mensaje
+        // Configura la acción del botón de envío
         sendButton.setOnAction(e -> {
             String message = inputField.getText();
             if (!message.isEmpty()) {
-                connection.sendDatagram(message, "127.0.0.1", 5000); // Enviar a PeerA en el puerto 5000
+                connection.sendDatagram(message, "127.0.0.1", 5001); // Envía al peer destino (cambia la IP según el peer destino)
                 messageArea.appendText("Yo: " + message + "\n");
                 inputField.clear();
             }
         });
 
-        // Layout de la interfaz gráfica
+        // Layout de la interfaz
         VBox layout = new VBox(10);
         layout.getChildren().addAll(messageArea, inputField, sendButton);
 
         // Configurar y mostrar la escena
         Scene scene = new Scene(layout, 400, 300);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("PeerD UDP Chat");
+        primaryStage.setTitle("Peer UDP Chat");
         primaryStage.show();
-
-        // Detener la conexión al cerrar la ventana
-        primaryStage.setOnCloseRequest(event -> connection.stopReceiving());
     }
 
     // Método para actualizar la interfaz con los mensajes recibidos

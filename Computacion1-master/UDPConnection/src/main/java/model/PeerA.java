@@ -1,67 +1,67 @@
-package model;
+package main.java.model;
 
-import java.io.IOException;
-import java.net.*;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+import util.UDPConnection;
 
-public class
+public class PeerA extends Application {
 
+    private UDPConnection connection;
+    private TextArea messageArea;
 
-PeerA {
+    @Override
+    public void start(Stage primaryStage) {
+        connection = UDPConnection.getInstance();
 
-    // hilo principal del lenguaje
-    public static void main(String[] args) {
-        // mensaje a enviar
-        // longitud del mensaje
-        // puerto destino
-        // ip destino
+        // Configura el puerto de escucha (5000 para este peer)
+        connection.setPort(5000);
+        connection.start(); // Inicia el hilo de recepción de mensajes
 
-        // Envio de Infromación
-        try {
-            DatagramSocket socket = new DatagramSocket();
-            String msj = "Hola desde PeerA";
-            InetAddress ipAddress = InetAddress.getByName("127.0.0.1");
+        // Configura el callback para actualizar la interfaz con los mensajes recibidos
+        connection.setUiCallbackA(this);
 
-            // Empaquetador de la información
-            // Encapsulamiento de los datos
-            //                                         el mensaje     | length     | ip dest  | puerto destino
-            DatagramPacket packet = new DatagramPacket(msj.getBytes(), msj.length(), ipAddress, 5001);
-            // envia la información
-            socket.send(packet);
+        // Componentes de la interfaz gráfica
+        messageArea = new TextArea();
+        messageArea.setEditable(false); // Área para mostrar mensajes recibidos
+        messageArea.setPrefHeight(200);
 
-        } catch (SocketException | UnknownHostException e) {
+        TextField inputField = new TextField(); // Campo de texto para enviar mensajes
+        Button sendButton = new Button("Enviar");
 
-        } catch (IOException e) {
+        // Acción del botón de enviar mensaje
+        sendButton.setOnAction(e -> {
+            String message = inputField.getText();
+            if (!message.isEmpty()) {
+                connection.sendDatagram(message, "127.0.0.1", 5001); // Enviar a PeerD en el puerto 5001
+                messageArea.appendText("Yo: " + message + "\n");
+                inputField.clear();
+            }
+        });
 
-        }
+        // Layout de la interfaz gráfica
+        VBox layout = new VBox(10);
+        layout.getChildren().addAll(messageArea, inputField, sendButton);
 
+        // Configurar y mostrar la escena
+        Scene scene = new Scene(layout, 400, 300);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("PeerA UDP Chat");
+        primaryStage.show();
 
-        // Recepción de la información
-        try {
-            // socket habilita la capacidad de escuchar por este puerto
-            DatagramSocket socket = new DatagramSocket(5000);
-
-            // empaquetador de la información
-            //                                         un arreglo de bytes | tamaño
-            DatagramPacket packet = new DatagramPacket(new byte[30], 30);
-
-            System.out.println("Waiting ....");
-            // recivir la información, y almacenarla en el paquete
-            socket.receive(packet);
-
-            // decodificando la información
-            String msj = new String(packet.getData()).trim();
-            System.out.println(msj);
-
-        } catch (SocketException e) {
-
-        } catch (IOException e) {
-
-        }
-
-
-
+        // Detener la conexión al cerrar la ventana
+        primaryStage.setOnCloseRequest(event -> connection.stopReceiving());
     }
 
+    // Método para actualizar la interfaz con los mensajes recibidos
+    public void updateMessageArea(String message) {
+        Platform.runLater(() -> messageArea.appendText("Peer: " + message + "\n"));
+    }
 
-
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
