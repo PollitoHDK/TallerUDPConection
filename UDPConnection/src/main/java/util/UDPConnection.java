@@ -1,7 +1,6 @@
 package util;
 
 import javafx.application.Platform;
-import main.java.App;
 import main.java.model.PeerA;
 import main.java.model.PeerD;
 
